@@ -33,7 +33,7 @@ public class WebController {
 			apiPool.put(userCode, aw);
 			declinedGuesses.put(userCode, new ArrayList<>());
 			Question q = aw.getCurrentQuestion();
-			toRetStr = q.getQuestion();
+			toRetStr = (q.getStep() + 1) + ". " + q.getQuestion();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -49,17 +49,14 @@ public class WebController {
 				.orElse(Language.ENGLISH);
 		return toRetLang;
 	}
-	
+
 	@RequestMapping("/cleanServer555")
 	public String cleanServer() {
 		String toRet = "Server Cleaned";
-		try
-		{
-		apiPool.clear();
-		declinedGuesses.clear();
-		}
-		catch(Exception ex)
-		{
+		try {
+			apiPool.clear();
+			declinedGuesses.clear();
+		} catch (Exception ex) {
 			toRet = "Error while cleaning Server";
 		}
 		return toRet;
@@ -114,7 +111,8 @@ public class WebController {
 		String toRetStr = "";
 		try {
 			Akiwrapper currentAw = apiPool.get(userCode);
-			toRetStr = currentAw.undoAnswer().getQuestion();
+			Question q = currentAw.undoAnswer();
+			toRetStr = (q.getStep() + 1) + ". " + q.getQuestion();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			toRetStr = errorHandle(e, userCode);
@@ -208,7 +206,7 @@ public class WebController {
 					}
 					apiPool.remove(userCode);
 				} else {
-					toRetStr = q.getQuestion();
+					toRetStr = (q.getStep() + 1) + ". " + q.getQuestion();
 				}
 			}
 		} catch (Exception e) {
