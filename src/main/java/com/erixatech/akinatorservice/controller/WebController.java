@@ -198,7 +198,7 @@ public class WebController {
 					// - Akiwrapper#getCurrentQuestion() will also keep returning null
 					List<Guess> allGuesses = currentAw.getGuesses();
 					for (Guess currGuess : allGuesses) {
-						toRetStr += currGuess.getName() + "~" + currGuess.getDescription() + "~" + currGuess.getImage()
+						toRetStr += "@@@" + currGuess.getName() + "~" + currGuess.getDescription() + "~" + currGuess.getImage()
 								+ "~" + currGuess.getProbability();
 					}
 					if (allGuesses != null && allGuesses.size() > 0) {
