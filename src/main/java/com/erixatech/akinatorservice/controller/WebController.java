@@ -205,8 +205,8 @@ public class WebController {
 					}
 					if (allGuesses != null && allGuesses.size() > 0) {
 						toRetStr += "--akinatorlostwithguesses";
-					}
-					optimisePools(userCode);
+						optimisePools(userCode);
+					}					
 				} else {
 					toRetStr = (q.getStep() + 1) + ". " + q.getQuestion();
 				}
