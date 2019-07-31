@@ -22,6 +22,7 @@ public class WebController {
 	HashMap<String, Akiwrapper> apiPool = new HashMap<>();
 	String errorPrefix = "##Error##~";
 	HashMap<String, List<Long>> declinedGuesses = new HashMap<>();
+	HashMap<String, String> guessesPool = new HashMap<>();
 
 	@RequestMapping("/start")
 	public String start(@RequestParam String userCode, @RequestParam String userLang) {
@@ -56,6 +57,7 @@ public class WebController {
 		try {
 			apiPool.clear();
 			declinedGuesses.clear();
+			guessesPool.clear();
 		} catch (Exception ex) {
 			toRet = "Error while cleaning Server";
 		}
@@ -198,31 +200,59 @@ public class WebController {
 					// - Akiwrapper#getCurrentQuestion() will also keep returning null
 					List<Guess> allGuesses = currentAw.getGuesses();
 					for (Guess currGuess : allGuesses) {
-						toRetStr += "@@@" + currGuess.getName() + "~" + currGuess.getDescription() + "~" + currGuess.getImage()
-								+ "~" + currGuess.getProbability();
+						toRetStr += "@@@" + currGuess.getName() + "~" + currGuess.getDescription() + "~"
+								+ currGuess.getImage() + "~" + currGuess.getProbability();
 					}
 					if (allGuesses != null && allGuesses.size() > 0) {
 						toRetStr += "--akinatorlostwithguesses";
 					}
-					apiPool.remove(userCode);
+					optimisePools(userCode);
 				} else {
 					toRetStr = (q.getStep() + 1) + ". " + q.getQuestion();
 				}
+			} else {
+				String currGuessesForUser = guessesPool.get(userCode);
+				List<Guess> allGuesses = currentAw.getGuesses();
+				for (Guess currGuess : allGuesses) {
+					if (!declinedGuesses.get(userCode).contains(Long.valueOf(currGuess.getIdLong()))) {
+						currGuessesForUser += "@@@" + currGuess.getName() + "~" + currGuess.getDescription() + "~"
+								+ currGuess.getImage() + "~" + currGuess.getProbability();
+					}
+				}
+				guessesPool.put(userCode, currGuessesForUser);
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			toRetStr = errorHandle(e, userCode);
 		}
 		if (toRetStr != null && toRetStr.length() < 1) {
-			toRetStr = "akinatorlostwithoutguesses";
-			apiPool.remove(userCode);
+			String currGuessesForUser = guessesPool.get(userCode);
+			if (currGuessesForUser != null && !currGuessesForUser.isEmpty()) {
+				toRetStr = currGuessesForUser + "--akinatorlostwithguesses";
+			} else {
+				toRetStr = "akinatorlostwithoutguesses";
+			}
+			optimisePools(userCode);
 		}
 		return toRetStr;
 	}
 
 	public String errorHandle(Exception e, String userCode) {
 		e.printStackTrace();
-		apiPool.remove(userCode);
+		optimisePools(userCode);
 		return errorPrefix + "Session Timed out, please Start Again";
+	}
+	
+	public void optimisePools(String userCode)
+	{
+		if (apiPool != null && !apiPool.isEmpty()) {
+			apiPool.remove(userCode);
+		}
+		if (declinedGuesses != null && !declinedGuesses.isEmpty()) {
+			declinedGuesses.remove(userCode);
+		}
+		if (guessesPool != null && !guessesPool.isEmpty()) {
+			guessesPool.remove(userCode);
+		}
 	}
 }
