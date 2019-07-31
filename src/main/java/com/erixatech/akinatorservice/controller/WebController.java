@@ -210,7 +210,8 @@ public class WebController {
 				} else {
 					toRetStr = (q.getStep() + 1) + ". " + q.getQuestion();
 				}
-			} else {
+			} 
+			//else {
 				String currGuessesForUser = guessesPool.get(userCode);
 				List<Guess> allGuesses = currentAw.getGuesses();
 				for (Guess currGuess : allGuesses) {
@@ -220,7 +221,7 @@ public class WebController {
 					}
 				}
 				guessesPool.put(userCode, currGuessesForUser);
-			}
+			//}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			toRetStr = errorHandle(e, userCode);
