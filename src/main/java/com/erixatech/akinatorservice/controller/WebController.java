@@ -22,7 +22,7 @@ public class WebController {
 	HashMap<String, Akiwrapper> apiPool = new HashMap<>();
 	String errorPrefix = "##Error##~";
 	HashMap<String, List<Long>> declinedGuesses = new HashMap<>();
-	HashMap<String, String> guessesPool = new HashMap<>();
+	HashMap<String, List<Guess>> guessesPool = new HashMap<>();
 
 	@RequestMapping("/start")
 	public String start(@RequestParam String userCode, @RequestParam String userLang) {
@@ -31,8 +31,7 @@ public class WebController {
 
 			Akiwrapper aw = new AkiwrapperBuilder().setFilterProfanity(true)
 					.setLocalization(getUserLanguage(userLang.toLowerCase().trim())).build();
-			apiPool.put(userCode, aw);
-			declinedGuesses.put(userCode, new ArrayList<>());
+			initializeFreshForUser(aw, userCode);
 			Question q = aw.getCurrentQuestion();
 			toRetStr = (q.getStep() + 1) + ". " + q.getQuestion();
 		} catch (Exception e) {
@@ -41,6 +40,12 @@ public class WebController {
 			toRetStr = errorPrefix + "Could not Contact Server. Check your Internet connection and Try Again";
 		}
 		return toRetStr;
+	}
+
+	public void initializeFreshForUser(Akiwrapper aw, String userCode) {
+		apiPool.put(userCode, aw);
+		declinedGuesses.put(userCode, new ArrayList<>());
+		guessesPool.put(userCode, new ArrayList<>());
 	}
 
 	public Language getUserLanguage(final String userLang) {
@@ -190,52 +195,87 @@ public class WebController {
 					declinedGuesses.get(userCode).add(guess.getIdLong());
 				}
 			}
+
+			saveGuesses(currentAw, userCode); // Save the Guesses
+
 			if (!isGuessMatches) {
 				Question q = currentAw.getCurrentQuestion();
 				if (q == null) {
-					// Watch out! Akinator has ran out of questions!
-					// In this case,
-					// - Akiwrapper#answerCurrentQuestion() will not throw an exception but rather
-					// return null no matter what
-					// - Akiwrapper#getCurrentQuestion() will also keep returning null
-					List<Guess> allGuesses = currentAw.getGuesses();
-					for (Guess currGuess : allGuesses) {
-						toRetStr += "@@@" + currGuess.getName() + "~" + currGuess.getDescription() + "~"
-								+ currGuess.getImage() + "~" + currGuess.getProbability();
+					/*
+					 * // Watch out! Akinator has ran out of questions! // In this case, // -
+					 * Akiwrapper#answerCurrentQuestion() will not throw an exception but rather //
+					 * return null no matter what // - Akiwrapper#getCurrentQuestion() will also
+					 * keep returning null
+					 */
+					// if (toRetStr != null && toRetStr.length() < 1) { //condition not required
+					deDupeGuessPool(userCode);
+					List<Guess> currGuessesForUser = guessesPool.get(userCode);
+					if (currGuessesForUser != null && !currGuessesForUser.isEmpty()) {
+						String userGuessesStr = "";
+						for (Guess currGuess : currGuessesForUser) {
+							userGuessesStr += "@@@" + currGuess.getName() + "~" + currGuess.getDescription() + "~"
+									+ currGuess.getImage() + "~" + currGuess.getProbability();
+						}
+						toRetStr = userGuessesStr + "--akinatorlostwithguesses";
+					} else {
+						toRetStr = "akinatorlostwithoutguesses";
 					}
-					if (allGuesses != null && allGuesses.size() > 0) {
-						toRetStr += "--akinatorlostwithguesses";
-						optimisePools(userCode);
-					}					
+					optimisePools(userCode);
+					// }
 				} else {
 					toRetStr = (q.getStep() + 1) + ". " + q.getQuestion();
 				}
-			} 
-			//else {
-				String currGuessesForUser = guessesPool.get(userCode);
-				List<Guess> allGuesses = currentAw.getGuesses();
-				for (Guess currGuess : allGuesses) {
-					if (!declinedGuesses.get(userCode).contains(Long.valueOf(currGuess.getIdLong()))) {
-						currGuessesForUser += "@@@" + currGuess.getName() + "~" + currGuess.getDescription() + "~"
-								+ currGuess.getImage() + "~" + currGuess.getProbability();
-					}
-				}
-				guessesPool.put(userCode, currGuessesForUser);
-			//}
+			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			toRetStr = errorHandle(e, userCode);
 		}
-		if (toRetStr != null && toRetStr.length() < 1) {
-			String currGuessesForUser = guessesPool.get(userCode);
-			if (currGuessesForUser != null && !currGuessesForUser.isEmpty()) {
-				toRetStr = currGuessesForUser + "--akinatorlostwithguesses";
-			} else {
-				toRetStr = "akinatorlostwithoutguesses";
-			}
-			optimisePools(userCode);
-		}
+
 		return toRetStr;
+	}
+
+	public void deDupeGuessPool(String userCode) {
+		List<Guess> listOfGuessesForUser = guessesPool.get(userCode);
+		List<Guess> deDupedGuesses = new ArrayList<>();
+		for (Guess currGuess : listOfGuessesForUser) {
+			if (!declinedGuesses.get(userCode).contains(Long.valueOf(currGuess.getIdLong()))) {
+				if (guessIdNotIn(currGuess, deDupedGuesses)) {
+					deDupedGuesses.add(currGuess);
+				}
+			}
+		}
+		guessesPool.put(userCode, deDupedGuesses);
+	}
+
+	public boolean guessIdNotIn(Guess guessToChk, List<Guess> listToChk) {
+		boolean toRet = true;
+		for (Guess currGuessToChk : listToChk) {
+			if (currGuessToChk.getId() == guessToChk.getId()) {
+				toRet = false;
+			}
+		}
+		return toRet;
+	}
+
+	public void saveGuesses(Akiwrapper currentAw, String userCode) {
+		List<Guess> listOfGuessesForUser = guessesPool.get(userCode);
+		List<Guess> currGuesses;
+		try {
+			currGuesses = currentAw.getGuesses();
+			for (Guess currGuess : currGuesses) {
+				if (!listOfGuessesForUser.contains(currGuess)) {
+					if (!declinedGuesses.get(userCode).contains(Long.valueOf(currGuess.getIdLong()))) {
+						if (currGuess.getProbability() > 0.3) {
+							listOfGuessesForUser.add(currGuess);
+						}
+					}
+				}
+			}
+			guessesPool.put(userCode, listOfGuessesForUser);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public String errorHandle(Exception e, String userCode) {
@@ -243,9 +283,8 @@ public class WebController {
 		optimisePools(userCode);
 		return errorPrefix + "Session Timed out, please Start Again";
 	}
-	
-	public void optimisePools(String userCode)
-	{
+
+	public void optimisePools(String userCode) {
 		if (apiPool != null && !apiPool.isEmpty()) {
 			apiPool.remove(userCode);
 		}
