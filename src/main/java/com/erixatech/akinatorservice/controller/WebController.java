@@ -1,6 +1,7 @@
 package com.erixatech.akinatorservice.controller;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -244,13 +245,16 @@ public class WebController {
 				}
 			}
 		}
+		if (deDupedGuesses != null && !deDupedGuesses.isEmpty()) {
+			Collections.reverse(deDupedGuesses);
+		}
 		guessesPool.put(userCode, deDupedGuesses);
 	}
 
 	public boolean guessIdNotIn(Guess guessToChk, List<Guess> listToChk) {
 		boolean toRet = true;
 		for (Guess currGuessToChk : listToChk) {
-			if (currGuessToChk.getId() == guessToChk.getId()) {
+			if (currGuessToChk.getId().equals(guessToChk.getId())) {
 				toRet = false;
 			}
 		}
