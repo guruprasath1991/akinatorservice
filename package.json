@@ -1,0 +1,26 @@
+{
+  "name": "akinatorservice",
+  "version": "1.0.0",
+  "description": "maya node js service",
+  "main": "server.js",
+  "dependencies": {
+    "aki-api": "^5.0.0",
+    "express": "^4.17.1",
+    "readline": "^1.3.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guruprasath1991/akinatorservice.git"
+  },
+  "author": "erixatech",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/guruprasath1991/akinatorservice/issues"
+  },
+  "homepage": "https://github.com/guruprasath1991/akinatorservice#readme"
+}
