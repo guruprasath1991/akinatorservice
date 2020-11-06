@@ -185,7 +185,7 @@ const start = async function(res, region, userCode) {
 	try {
 		let aki = new Aki(region);
 		initializeFreshForUser(aki, userCode);
-		if(region == "en") {
+		/*if(region == "en") {
             try {
                 await aki.start();
             } catch (e) {
@@ -197,6 +197,20 @@ const start = async function(res, region, userCode) {
 		else
         {
             await aki.start();
+        }*/
+        try {
+            await aki.start();
+        } catch (e) {
+            try {
+                aki.urlApiWs = "srv11.akinator.com:9346";
+                aki.gameEnv.urlApiWs = "srv11.akinator.com:9346";
+                await aki.start();
+            }
+            catch (e) {
+                aki.urlApiWs = "srv3.akinator.com:9333";
+                aki.gameEnv.urlApiWs = "srv3.akinator.com:9333";
+                await aki.start();
+            }
         }
 		res.send("1. "+aki.question);
 	}
