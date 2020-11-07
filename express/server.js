@@ -206,6 +206,9 @@ const start = async function(res, region, userCode) {
             aki.urlApiWs = "srv11.akinator.com:9346";
             aki.gameEnv.urlApiWs = "srv11.akinator.com:9346";
             aki.frontaddr = "MTQ3LjEzNS4xMjkuOTM=";
+            aki.signature = "225604208";
+            aki.challenge_auth = "abb38ca7-be1c-4c33-9c5d-92ec8461c662";
+            aki.session = "15";
             await aki.start();
         } catch (e) {
             try {
