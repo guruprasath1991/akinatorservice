@@ -1,6 +1,8 @@
 const { Aki } = require('aki-api');
 const readline = require('readline');
 var express = require('express');
+const path = require('path');
+const serverless = require('serverless-http');
 var app = express();
 const router = express.Router();
 const http = require('http');
@@ -41,7 +43,9 @@ function normalizePort(val) {
 	return false;
 }
 
-app.use('/', router);
+//app.use('/', router);
+app.use('/.netlify/functions/server', router);  // path must route to lambda
+app.use('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 //Global Constants
 const errorPrefix = "##Error##~";
@@ -497,3 +501,6 @@ const processAnswersAndGuesses = function(userCode, answers) {
         //handling not needed as of now
     }
 }
+
+module.exports = app;
+module.exports.handler = serverless(app);
