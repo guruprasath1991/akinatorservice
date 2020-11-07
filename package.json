@@ -13,11 +13,11 @@
   },
   "devDependencies": {},
   "scripts": {
+	"build": "netlify-lambda build express",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
   "repository": {
-	"build": "netlify-lambda build express",
     "type": "git",
     "url": "git+https://github.com/guruprasath1991/akinatorservice.git"
   },
