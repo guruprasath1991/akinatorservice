@@ -6,7 +6,7 @@ const router = express.Router();
 const http = require('http');
 
 /**
- * Get port from environment and store in Express.
+ * Get port from environment and store inExpress.
  */
 const port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
