@@ -189,6 +189,7 @@ const start = async function(res, region, userCode) {
 	try {
 		let aki = new Aki(region);
 		initializeFreshForUser(aki, userCode);
+        console.log("chk1");
 		/*if(region == "en") {
             try {
                 await aki.start();
@@ -203,28 +204,27 @@ const start = async function(res, region, userCode) {
             await aki.start();
         }*/
         try {
-            aki.urlApiWs = "srv11.akinator.com:9346";
-            aki.gameEnv.urlApiWs = "srv11.akinator.com:9346";
-            aki.frontaddr = "MTQ3LjEzNS4xMjkuOTM=";
-            aki.signature = "225604208";
-            aki.challenge_auth = "abb38ca7-be1c-4c33-9c5d-92ec8461c662";
-            aki.session = "15";
+            console.log("chk2");
             await aki.start();
         } catch (e) {
             try {
                 aki.urlApiWs = "srv11.akinator.com:9346";
                 aki.gameEnv.urlApiWs = "srv11.akinator.com:9346";
+                console.log("chk3");
                 await aki.start();
             }
             catch (e) {
                 aki.urlApiWs = "srv3.akinator.com:9333";
                 aki.gameEnv.urlApiWs = "srv3.akinator.com:9333";
+                console.log("chk4");
                 await aki.start();
             }
         }
+        console.log("chk5");
 		res.send("1. "+aki.question);
 	}
 	catch (e) {
+	    console.log(e.message);
 		res.send(errorPrefix + "Server down or Technical Error. Please, Try again.");
 	}
 }
