@@ -1,0 +1,12 @@
+if (myOrder.orderItems && myOrder.orderItems) {
+                let partnerObj = myOrder.orderItems.find(function (value) {
+                  return value.hasOwnProperty(orderDetails.partnerCode)
+                });
+                if(partnerObj && partnerObj[orderDetails.partnerCode] && partnerObj[orderDetails.partnerCode].partnerOrderItems) {
+                  let partnerOrderItems = partnerObj[orderDetails.partnerCode].partnerOrderItems;
+                  let lookupJson = queryJson;
+                  let myOrderItem = partnerOrderItems.find(orderItem => orderItem.productId == orderDetails.productId);
+                  if (myOrderItem && myOrderItem.deliveryStatus != null) {
+                    if (myOrderItem.deliveryStatus == orderDetails.deliveryStatus) {
+                      errHandler.handleError(res, 'Item already in the same status', 'Item already in the same status');
+                    }
