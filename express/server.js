@@ -1,6 +1,7 @@
 const { Aki } = require('aki-api');
 const getSession = require('aki-api/src/lib/functions/GetSession');
-const request = require('aki-api/src/lib/functions/Request');
+//const request = require('aki-api/src/lib/functions/Request');
+const request = require('request-promise');
 const { jQuery } = require('aki-api/src/lib/constants/Client');
 const akinatorAPIErrors = require('aki-api/src/errors/AkinatorAPIErrors');
 const readline = require('readline');
@@ -195,7 +196,7 @@ Aki.prototype.start = async function() {
     this.uid = this.uriObj.uid;
     this.frontaddr = this.uriObj.frontaddr;
     console.log(`https://${this.uri}/new_session?callback=${jQuery + new Date().getTime()}&urlApiWs=https://${this.urlApiWs}/ws&partner=1&player=website-desktop&uid_ext_session=${this.uid}&frontaddr=${this.frontaddr}&constraint=ETAT%%3C%%3E%%27AV%%27&constraint=ETAT<>'AV'`);
-    const result = await request(`https://${this.uri}/new_session?callback=${jQuery + new Date().getTime()}&urlApiWs=https://${this.urlApiWs}/ws&partner=1&player=website-desktop&uid_ext_session=${this.uid}&frontaddr=${this.frontaddr}&constraint=ETAT%%3C%%3E%%27AV%%27&constraint=ETAT<>'AV'`);
+    const result = await rp(`https://${this.uri}/new_session?callback=${jQuery + new Date().getTime()}&urlApiWs=https://${this.urlApiWs}/ws&partner=1&player=website-desktop&uid_ext_session=${this.uid}&frontaddr=${this.frontaddr}&constraint=ETAT%%3C%%3E%%27AV%%27&constraint=ETAT<>'AV'`);
     const { body, statusCode } = result;
 
     console.log(statusCode);
@@ -213,6 +214,34 @@ Aki.prototype.start = async function() {
     this.answers = body.parameters.step_information.answers.map(ans => ans.answer);
 }
 
+const rp = async (uri) => {
+    const opts = {
+        method: 'GET',
+        uri,
+        headers: {
+            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) snap Chromium/81.0.4044.92 Chrome/81.0.4044.92 Safari/537.36',
+            'x-requested-with': 'XMLHttpRequest',
+        },
+        gzip: true,
+        resolveWithFullResponse: true,
+        timeout: 10000,
+    };
+
+    try {
+        const result = await request(opts);
+        console.log(JSON.stringify(result));
+        const beginningParse = result.body.indexOf('(');
+        const jsonString = result.body.substring(beginningParse + 1, result.body.length - 1);
+        result.body = JSON.parse(jsonString);
+        console.log(JSON.stringify(result.body));
+        return result;
+    } catch (error) {
+        throw new Error(`A problem occurred with making the request: ${error}`);
+    }
+};
 
 const start = async function(req, res, region, userCode) {
 	try {
