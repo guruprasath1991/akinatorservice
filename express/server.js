@@ -196,6 +196,7 @@ const start = async function(req, res, region, userCode) {
         }
         req.headers['accept-encoding'] = "gzip, deflate, br";
         req.headers['if-none-match'] = "W/\"2b-V1nRe6jMru73tJxeIuRD8zpA/MQ\"";
+        req.headers['sec-fetch-user'] = "?1";
         delete req.headers['client-ip'];
         delete req.headers['via'];
         let headersInReq = Object.keys(req.headers);
