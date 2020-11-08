@@ -190,6 +190,16 @@ const start = async function(req, res, region, userCode) {
 		let aki = new Aki(region);
 		initializeFreshForUser(aki, userCode);
 		console.log("Request headers : ");
+        delete req.headers['client-ip'];
+        delete req.headers['via'];
+        let headersInReq = Object.keys(req.headers);
+        for(let i=0; i< headersInReq.length; i++)
+        {
+            if(headersInReq[i].startsWith('x-'))
+            {
+                delete req.headers[headersInReq[i]];
+            }
+        }
         console.log(JSON.stringify(req.headers));
         console.log("Response headers : ");
         console.log(JSON.stringify(res.headers));
