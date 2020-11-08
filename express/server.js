@@ -191,12 +191,12 @@ const handleUndo = async function (req, res) {
 	}
 }
 
-Aki.prototype.start = async function() {
+Aki.prototype.start = async function(req) {
     this.uriObj = await getSession();
     this.uid = this.uriObj.uid;
     this.frontaddr = this.uriObj.frontaddr;
     console.log(`https://${this.uri}/new_session?callback=${jQuery + new Date().getTime()}&urlApiWs=https://${this.urlApiWs}/ws&partner=1&player=website-desktop&uid_ext_session=${this.uid}&frontaddr=${this.frontaddr}&constraint=ETAT%%3C%%3E%%27AV%%27&constraint=ETAT<>'AV'`);
-    const result = await rp(`https://${this.uri}/new_session?callback=${jQuery + new Date().getTime()}&urlApiWs=https://${this.urlApiWs}/ws&partner=1&player=website-desktop&uid_ext_session=${this.uid}&frontaddr=${this.frontaddr}&constraint=ETAT%%3C%%3E%%27AV%%27&constraint=ETAT<>'AV'`);
+    const result = await rp(`https://${this.uri}/new_session?callback=${jQuery + new Date().getTime()}&urlApiWs=https://${this.urlApiWs}/ws&partner=1&player=website-desktop&uid_ext_session=${this.uid}&frontaddr=${this.frontaddr}&constraint=ETAT%%3C%%3E%%27AV%%27&constraint=ETAT<>'AV'`, req);
     const { body, statusCode } = result;
 
     console.log(statusCode);
@@ -214,16 +214,17 @@ Aki.prototype.start = async function() {
     this.answers = body.parameters.step_information.answers.map(ans => ans.answer);
 }
 
-const rp = async (uri) => {
+const rp = async (uri, req) => {
     const opts = {
         method: 'GET',
         uri,
         headers: {
-            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
             'Accept-Encoding': 'gzip, deflate',
             'Accept-Language': 'en-US,en;q=0.9',
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) snap Chromium/81.0.4044.92 Chrome/81.0.4044.92 Safari/537.36',
             'x-requested-with': 'XMLHttpRequest',
+            'host': req.headers['host']
         },
         gzip: true,
         resolveWithFullResponse: true,
@@ -231,6 +232,7 @@ const rp = async (uri) => {
     };
 
     try {
+        console.log(opts);
         const result = await request(opts);
         console.log(JSON.stringify(result));
         const beginningParse = result.body.indexOf('(');
@@ -259,7 +261,7 @@ const start = async function(req, res, region, userCode) {
         delete req.headers['content-length'];
         req.headers['Content-Type'] = "text/plain";
         req.headers['accept'] = "text/plain,application/json,text/html,application/xhtml+xml,application/xml,*/*;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9";
-        req.headers['host'] = "localhost:3000";
+        //req.headers['host'] = "localhost:3000";
         console.log(req.socket.remoteAddress);
         console.log(req.get('origin'));
         console.log(os.hostname());
@@ -297,19 +299,19 @@ const start = async function(req, res, region, userCode) {
             console.log("chk2");
             aki.urlApiWs = "srv11.akinator.com:9346";
             aki.gameEnv.urlApiWs = "srv11.akinator.com:9346";
-            await aki.start();
+            await aki.start(req);
         } catch (e) {
             try {
                 aki.urlApiWs = "srv11.akinator.com:9346";
                 aki.gameEnv.urlApiWs = "srv11.akinator.com:9346";
                 console.log("chk3");
-                await aki.start();
+                await aki.start(req);
             }
             catch (e) {
                 aki.urlApiWs = "srv3.akinator.com:9333";
                 aki.gameEnv.urlApiWs = "srv3.akinator.com:9333";
                 console.log("chk4");
-                await aki.start();
+                await aki.start(req);
             }
         }
         console.log("chk5");
