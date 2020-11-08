@@ -188,6 +188,7 @@ const handleUndo = async function (req, res) {
 
 const start = async function(req, res, region, userCode) {
 	try {
+        console.log(req.method);
 		console.log("Request headers : ");
         if(req.headers['client-ip'])
         {
@@ -199,6 +200,7 @@ const start = async function(req, res, region, userCode) {
         delete req.headers['client-ip'];
         delete req.headers['via'];
         delete req.headers['content-length'];
+        req.headers['Content-Type'] = "text/plain";
         req.headers['host'] = "localhost:3000";
         console.log(req.socket.remoteAddress);
         console.log(req.get('origin'));
@@ -216,6 +218,7 @@ const start = async function(req, res, region, userCode) {
         console.log(JSON.stringify(req.headers));
         console.log("Response headers : ");
         console.log(JSON.stringify(res.headers));
+        console.log(req.method);
         const childMode = true;
         let aki = new Aki(region, childMode);
         initializeFreshForUser(aki, userCode);
