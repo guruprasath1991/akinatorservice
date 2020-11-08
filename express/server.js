@@ -1,4 +1,8 @@
 const { Aki } = require('aki-api');
+const getSession = require('aki-api/src/lib/functions/GetSession');
+const request = require('aki-api/src/lib/functions/Request');
+const { jQuery } = require('aki-api/src/lib/constants/Client');
+const akinatorAPIErrors = require('aki-api/src/errors/AkinatorAPIErrors');
 const readline = require('readline');
 var express = require('express');
 const path = require('path');
@@ -186,13 +190,16 @@ const handleUndo = async function (req, res) {
 	}
 }
 
-const neww = async function(myParameters) {
-    this.uriObj = await Aki.prototype.getSession();
+Aki.prototype.start = async function() {
+    this.uriObj = await getSession();
     this.uid = this.uriObj.uid;
     this.frontaddr = this.uriObj.frontaddr;
     console.log(`https://${this.uri}/new_session?callback=${jQuery + new Date().getTime()}&urlApiWs=https://${this.urlApiWs}/ws&partner=1&player=website-desktop&uid_ext_session=${this.uid}&frontaddr=${this.frontaddr}&constraint=ETAT%%3C%%3E%%27AV%%27&constraint=ETAT<>'AV'`);
     const result = await request(`https://${this.uri}/new_session?callback=${jQuery + new Date().getTime()}&urlApiWs=https://${this.urlApiWs}/ws&partner=1&player=website-desktop&uid_ext_session=${this.uid}&frontaddr=${this.frontaddr}&constraint=ETAT%%3C%%3E%%27AV%%27&constraint=ETAT<>'AV'`);
     const { body, statusCode } = result;
+
+    console.log(statusCode);
+    console.log(JSON.stringify(body));
 
     if (!statusCode || statusCode !== 200 || !body || body.completion !== 'OK' || !body.parameters || !body.parameters.step_information.question) {
         akinatorAPIErrors(body, this.region);
