@@ -188,8 +188,6 @@ const handleUndo = async function (req, res) {
 
 const start = async function(req, res, region, userCode) {
 	try {
-		let aki = new Aki(region);
-		initializeFreshForUser(aki, userCode);
 		console.log("Request headers : ");
         if(req.headers['client-ip'])
         {
@@ -205,6 +203,8 @@ const start = async function(req, res, region, userCode) {
         console.log(req.socket.remoteAddress);
         console.log(req.get('origin'));
         console.log(os.hostname());
+        console.log(os.type());
+        console.log(os.platform());
         let headersInReq = Object.keys(req.headers);
         for(let i=0; i< headersInReq.length; i++)
         {
@@ -216,6 +216,9 @@ const start = async function(req, res, region, userCode) {
         console.log(JSON.stringify(req.headers));
         console.log("Response headers : ");
         console.log(JSON.stringify(res.headers));
+        const childMode = true;
+        let aki = new Aki(region, childMode);
+        initializeFreshForUser(aki, userCode);
 		/*if(region == "en") {
             try {
                 await aki.start();
