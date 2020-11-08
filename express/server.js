@@ -77,7 +77,7 @@ router.get('/start', function(req, res) {
 
 		if(userCode && userLang) {
 			let region = langMap[userLang] ? langMap[userLang] : "en";
-			start(res, region, userCode);
+			start(req, res, region, userCode);
 		}
 		else {
 			res.send(errorPrefix + "Invalid request");
@@ -185,11 +185,14 @@ const handleUndo = async function (req, res) {
 	}
 }
 
-const start = async function(res, region, userCode) {
+const start = async function(req, res, region, userCode) {
 	try {
 		let aki = new Aki(region);
 		initializeFreshForUser(aki, userCode);
-        console.log("chk1");
+		console.log("Request headers : ");
+        console.log(JSON.stringify(req.headers));
+        console.log("Response headers : ");
+        console.log(JSON.stringify(res.headers));
 		/*if(region == "en") {
             try {
                 await aki.start();
@@ -225,6 +228,10 @@ const start = async function(res, region, userCode) {
 	}
 	catch (e) {
 	    console.log(e.message);
+        console.log("Request2 headers : ");
+        console.log(JSON.stringify(req.headers));
+        console.log("Response2 headers : ");
+        console.log(JSON.stringify(res.headers));
 		res.send(errorPrefix + "Server down or Technical Error. Please, Try again.");
 	}
 }
