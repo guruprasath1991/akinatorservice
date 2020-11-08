@@ -1,7 +1,9 @@
 const { Aki } = require('aki-api');
 const getSession = require('aki-api/src/lib/functions/GetSession');
+const getURL = require('aki-api/src/lib/functions/GetURL');
 //const request = require('aki-api/src/lib/functions/Request');
-const request = require('request-promise');
+//const request = require('request-promise');
+const axios = require('axios');
 const { jQuery } = require('aki-api/src/lib/constants/Client');
 const akinatorAPIErrors = require('aki-api/src/errors/AkinatorAPIErrors');
 const readline = require('readline');
@@ -191,54 +193,56 @@ const handleUndo = async function (req, res) {
 	}
 }
 
-Aki.prototype.start = async function(req) {
+Aki.prototype.start = async function() {
+    const server = await getURL(this.region);
+    if (!server) throw new Error(`Could not find a server matching the region ${this.region}`);
+
+    this.uri = server.url;
+    this.urlApiWs = server.urlWs;
     this.uriObj = await getSession();
     this.uid = this.uriObj.uid;
     this.frontaddr = this.uriObj.frontaddr;
-    console.log(`https://${this.uri}/new_session?callback=${jQuery + new Date().getTime()}&urlApiWs=https://${this.urlApiWs}/ws&partner=1&player=website-desktop&uid_ext_session=${this.uid}&frontaddr=${this.frontaddr}&constraint=ETAT%%3C%%3E%%27AV%%27&constraint=ETAT<>'AV'`);
-    const result = await rp(`https://${this.uri}/new_session?callback=${jQuery + new Date().getTime()}&urlApiWs=https://${this.urlApiWs}/ws&partner=1&player=website-desktop&uid_ext_session=${this.uid}&frontaddr=${this.frontaddr}&constraint=ETAT%%3C%%3E%%27AV%%27&constraint=ETAT<>'AV'`, req);
-    const { body, statusCode } = result;
 
-    console.log(statusCode);
-    console.log(JSON.stringify(body));
+    console.log(`${this.uri}/new_session?callback=${jQuery + new Date().getTime()}&urlApiWs=${this.urlApiWs}&partner=1&childMod=${this.childMode.childMod}&player=website-desktop&uid_ext_session=${this.uid}&frontaddr=${this.frontaddr}&constraint=ETAT<>'AV'&soft_constraint=${this.childMode.softConstraint}&question_filter=${this.childMode.questionFilter}`);
+    const { data, status } = await rp(`${this.uri}/new_session?callback=${jQuery + new Date().getTime()}&urlApiWs=${this.urlApiWs}&partner=1&childMod=${this.childMode.childMod}&player=website-desktop&uid_ext_session=${this.uid}&frontaddr=${this.frontaddr}&constraint=ETAT<>'AV'&soft_constraint=${this.childMode.softConstraint}&question_filter=${this.childMode.questionFilter}`);
 
-    if (!statusCode || statusCode !== 200 || !body || body.completion !== 'OK' || !body.parameters || !body.parameters.step_information.question) {
-        akinatorAPIErrors(body, this.region);
+    if (!status || status !== 200 || !data || data.completion !== 'OK' || !data.parameters || !data.parameters.step_information.question) {
+        akinatorAPIErrors(data, this.region);
         return;
     }
 
-    this.session = body.parameters.identification.session;
-    this.signature = body.parameters.identification.signature;
-    this.question = body.parameters.step_information.question;
-    this.challenge_auth = body.parameters.identification.challenge_auth;
-    this.answers = body.parameters.step_information.answers.map(ans => ans.answer);
+    this.session = data.parameters.identification.session;
+    this.signature = data.parameters.identification.signature;
+    this.question = data.parameters.step_information.question;
+    this.challenge_auth = data.parameters.identification.challenge_auth;
+    this.answers = data.parameters.step_information.answers.map((ans) => ans.answer);
 }
 
-const rp = async (uri, req) => {
-    const opts = {
-        method: 'GET',
-        uri,
-        headers: {
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-            'Accept-Encoding': 'gzip, deflate',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) snap Chromium/81.0.4044.92 Chrome/81.0.4044.92 Safari/537.36',
-            'x-requested-with': 'XMLHttpRequest',
-            'host': req.headers['host']
-        },
-        gzip: true,
-        resolveWithFullResponse: true,
-        timeout: 10000,
-    };
+const headers = {
+    Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+    'Accept-Encoding': 'gzip, deflate',
+    'Accept-Language': 'en-US,en;q=0.9',
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) snap Chromium/81.0.4044.92 Chrome/81.0.4044.92 Safari/537.36',
+    'x-requested-with': 'XMLHttpRequest',
+};
 
+const params = {
+    gzip: true,
+    resolveWithFullResponse: true,
+    timeout: 10000,
+};
+
+const rp = async (uri) => {
     try {
-        console.log(opts);
-        const result = await request(opts);
-        console.log(JSON.stringify(result));
-        const beginningParse = result.body.indexOf('(');
-        const jsonString = result.body.substring(beginningParse + 1, result.body.length - 1);
-        result.body = JSON.parse(jsonString);
-        console.log(JSON.stringify(result.body));
+        const result = await axios.get(uri, {
+            headers,
+            params,
+        });
+        console.log(result);
+        const beginningParse = result.data.indexOf('(');
+        const jsonString = result.data.substring(beginningParse + 1, result.data.length - 1);
+        result.data = JSON.parse(jsonString);
+        console.log(JSON.stringify(result.data));
         return result;
     } catch (error) {
         throw new Error(`A problem occurred with making the request: ${error}`);
@@ -297,21 +301,21 @@ const start = async function(req, res, region, userCode) {
         }*/
         try {
             console.log("chk2");
-            aki.urlApiWs = "srv11.akinator.com:9346";
-            aki.gameEnv.urlApiWs = "srv11.akinator.com:9346";
-            await aki.start(req);
+            //aki.urlApiWs = "srv11.akinator.com:9346";
+            //aki.gameEnv.urlApiWs = "srv11.akinator.com:9346";
+            await aki.start();
         } catch (e) {
             try {
                 aki.urlApiWs = "srv11.akinator.com:9346";
-                aki.gameEnv.urlApiWs = "srv11.akinator.com:9346";
+                //aki.gameEnv.urlApiWs = "srv11.akinator.com:9346";
                 console.log("chk3");
-                await aki.start(req);
+                await aki.start();
             }
             catch (e) {
                 aki.urlApiWs = "srv3.akinator.com:9333";
-                aki.gameEnv.urlApiWs = "srv3.akinator.com:9333";
+                //aki.gameEnv.urlApiWs = "srv3.akinator.com:9333";
                 console.log("chk4");
-                await aki.start(req);
+                await aki.start();
             }
         }
         console.log("chk5");
