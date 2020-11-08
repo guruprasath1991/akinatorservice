@@ -6,6 +6,7 @@ const serverless = require('serverless-http');
 var app = express();
 const router = express.Router();
 const http = require('http');
+var os = require("os");
 
 /**
  * Get port from environment and store inExpress.
@@ -199,6 +200,11 @@ const start = async function(req, res, region, userCode) {
         req.headers['sec-fetch-user'] = "?1";
         delete req.headers['client-ip'];
         delete req.headers['via'];
+        delete req.headers['content-length'];
+        req.headers['host'] = "localhost:3000";
+        console.log(req.socket.remoteAddress);
+        console.log(req.get('origin'));
+        console.log(os.hostname());
         let headersInReq = Object.keys(req.headers);
         for(let i=0; i< headersInReq.length; i++)
         {
