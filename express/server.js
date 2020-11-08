@@ -238,6 +238,8 @@ const start = async function(req, res, region, userCode) {
         }*/
         try {
             console.log("chk2");
+            aki.urlApiWs = "srv11.akinator.com:9346";
+            aki.gameEnv.urlApiWs = "srv11.akinator.com:9346";
             await aki.start();
         } catch (e) {
             try {
