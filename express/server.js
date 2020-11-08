@@ -190,6 +190,12 @@ const start = async function(req, res, region, userCode) {
 		let aki = new Aki(region);
 		initializeFreshForUser(aki, userCode);
 		console.log("Request headers : ");
+        if(req.headers['client-ip'])
+        {
+            req.headers['host'] = req.headers['client-ip'];
+        }
+        req.headers['accept-encoding'] = "gzip, deflate, br";
+        req.headers['if-none-match'] = "W/\"2b-V1nRe6jMru73tJxeIuRD8zpA/MQ\"";
         delete req.headers['client-ip'];
         delete req.headers['via'];
         let headersInReq = Object.keys(req.headers);
